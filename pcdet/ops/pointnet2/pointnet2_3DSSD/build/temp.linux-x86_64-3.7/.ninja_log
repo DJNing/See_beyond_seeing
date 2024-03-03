@@ -1,0 +1,10 @@
+# ninja log v5
+1	5962	1708260686177694664	/CenterPoint-KITTI/pcdet/ops/pointnet2/pointnet2_3DSSD/build/temp.linux-x86_64-3.7/src/interpolate.o	13e46a78c6ce41ed
+1	5963	1708260686177694664	/CenterPoint-KITTI/pcdet/ops/pointnet2/pointnet2_3DSSD/build/temp.linux-x86_64-3.7/src/group_points.o	f1cea619066d5416
+1	6121	1708260686333692479	/CenterPoint-KITTI/pcdet/ops/pointnet2/pointnet2_3DSSD/build/temp.linux-x86_64-3.7/src/sampling.o	db7eb9371143e5f6
+1	6426	1708260686641688162	/CenterPoint-KITTI/pcdet/ops/pointnet2/pointnet2_3DSSD/build/temp.linux-x86_64-3.7/src/ball_query.o	7865c29e8aab9aed
+0	16688	1708260696897549670	/CenterPoint-KITTI/pcdet/ops/pointnet2/pointnet2_3DSSD/build/temp.linux-x86_64-3.7/src/pointnet2_api.o	cd359670eb1d89b3
+1	35938	1708260716145316718	/CenterPoint-KITTI/pcdet/ops/pointnet2/pointnet2_3DSSD/build/temp.linux-x86_64-3.7/src/interpolate_gpu.o	712c65abbb237708
+1	36038	1708260716245315598	/CenterPoint-KITTI/pcdet/ops/pointnet2/pointnet2_3DSSD/build/temp.linux-x86_64-3.7/src/ball_query_gpu.o	ce17d073d3a22a32
+1	36086	1708260716293315063	/CenterPoint-KITTI/pcdet/ops/pointnet2/pointnet2_3DSSD/build/temp.linux-x86_64-3.7/src/group_points_gpu.o	fc034c193e03f139
+2	38057	1708260718265293169	/CenterPoint-KITTI/pcdet/ops/pointnet2/pointnet2_3DSSD/build/temp.linux-x86_64-3.7/src/sampling_gpu.o	5f1d58871369f46

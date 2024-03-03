@@ -1,0 +1,14 @@
+# numpy
+# torch>=1.1
+# numba
+tensorboardX
+easydict
+pyyaml
+scikit-image
+tqdm
+ipdb
+scikit-learn
+k3d
+matplotlib
+open3d
+sharedarray

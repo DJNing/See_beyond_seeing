@@ -1,0 +1,54 @@
+ARG PYTORCH="1.9.1"
+ARG CUDA="11.1"
+ARG CUDNN="8"
+
+FROM pytorch/pytorch:${PYTORCH}-cuda${CUDA}-cudnn${CUDNN}-devel
+
+ENV TORCH_CUDA_ARCH_LIST="6.0 6.1 7.0+PTX 8.0+PTX"
+ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
+ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
+RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
+RUN rm /etc/apt/sources.list.d/cuda.list
+RUN rm /etc/apt/sources.list.d/nvidia-ml.list
+RUN apt clean
+RUN apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/3bf863cc.pub
+RUN chmod 777 /tmp
+# Install basics
+RUN apt-get update -y \
+    && apt-get install build-essential \
+    && apt-get install -y apt-utils git curl ca-certificates bzip2 tree htop wget x11-apps \
+    && apt-get install -y libglib2.0-0 libsm6 libxext6 libxrender-dev bmon iotop g++ python3.7 python3.7-dev python3.7-distutils openssh-server libgl1-mesa-glx
+
+RUN pip install --user tensorboard cmake   # cmake from apt-get is too old
+# Install python
+RUN ln -sv /usr/bin/python3.7 /usr/bin/python
+# Install python packages
+RUN PIP_INSTALL="python -m pip --no-cache-dir install" && \
+    $PIP_INSTALL tensorboardX easydict pyyaml scikit-image tqdm SharedArray six matplotlib k3d scikit-learn ipdb numba==0.53.0
+
+WORKDIR /root
+
+# RUN cd / && git clone https://github.com/MAPS-Lab/CenterPoint-KITTI.git
+RUN pip install tensorboardX
+RUN pip install --ignore-installed PyYAML
+RUN pip install open3d
+RUN pip install spconv-cu111
+
+RUN mkdir /var/run/sshd
+
+RUN echo 'root:root' | chpasswd
+# setting up ssh and X11 forwarding
+RUN sed -i 's/#\?PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+RUN sed -i -e 's/#X11UseLocalhost yes/X11UseLocalhost no/' /etc/ssh/sshd_config
+RUN sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
+
+ENV NOTVISIBLE "in users profile"
+RUN echo "export VISIBLE=now" >> /etc/profile
+RUN echo "export PATH=${PATH}" >> /root/.bashrc
+# set cuda env in bashrc
+COPY ./cuda_env.txt /
+RUN cat /cuda_env.txt >> /root/.bashrc
+# COPY ./ssh_config /etc/ssh/
+
+# EXPOSE 22
+CMD ["/usr/sbin/sshd", "-D"]
