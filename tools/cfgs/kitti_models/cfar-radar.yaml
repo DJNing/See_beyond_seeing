@@ -1,8 +1,10 @@
-CLASS_NAMES: ['Car', 'Truck']
+CLASS_NAMES: ['Car','Pedestrian', 'Cyclist']
 
 DATA_CONFIG:
-    _BASE_CONFIG_: /root/dj/code/CenterPoint-KITTI/tools/cfgs/dataset_configs/inhouse_radar_point_based_gan.yaml
-    # TODO: handle data_processor base on different modality
+    _BASE_CONFIG_: /CenterPoint-KITTI/tools/cfgs/dataset_configs/vod_radar_dataset.yaml
+    
+    ATTACH_USED_FEATURE_LIST: ['x', 'y', 'z','intensity']
+    
     DATA_PROCESSOR:
         -   NAME: mask_points_and_boxes_outside_range
             REMOVE_OUTSIDE_BOXES: True
@@ -24,15 +26,19 @@ DATA_CONFIG:
             }
 
 USE_ATTACH: True
-# FREEZE_MODE: head
 MODEL:
-    NAME: IASSDGAN
+    DEBUG: False
+    NAME: CFAR
     ATTACH_NETWORK:
-        CKPT_FILE: "/root/dj/code/CenterPoint-KITTI/output/IA-SSD-lidar-2cls/init/ckpt/checkpoint_epoch_23.pth"
+        CKPT_FILE: "/CenterPoint-KITTI/ckpts/iassd/iassd-lidar-all-cls.pth"
+        NUM_POINT_FEATURES: 4
         BACKBONE_3D:
             NAME: IASSD_Backbone
+            # ========= for evaluation only ==========
+            # SAVE_FEAT_DIR: '/mnt/sda1/hantao/CenterPoint-KITTI/output/IA-SSD-GAN-vod-aug/debug/eval/inter_feats/attach'
+            # ========================================
             SA_CONFIG:
-                # Sampling setting:
+                Sampling setting:
                 NPOINT_LIST: [[4096], [1024], [512], [256], [-1], [256]]
                 SAMPLE_RANGE_LIST: [[-1], [-1], [-1], [-1], [-1], [-1]]
                 SAMPLE_METHOD_LIST: [['D-FPS'], ['D-FPS'], ['ctr_aware'], ['ctr_aware'], [], []]
@@ -50,19 +56,14 @@ MODEL:
                 AGGREGATION_MLPS: [[64], [128], [256], [256], [], [512]]
                 # Instance-aware setting:
                 CONFIDENCE_MLPS: [[], [128], [256], [], [], []]
-
+                EUCLIDEAN_MASK: [False, False, False, False, False, False]       
                 LAYER_INPUT: [0, 1, 2, 3, 4, 3]
                 CTR_INDEX: [-1, -1, -1, -1, -1, 5]
-                MAX_TRANSLATE_RANGE: [3.0, 3.0, 2.0]
-    CROSS_OVER:
-        CH_IN: 512
-        MLPS: [448, 384, 320, 256]
-        LOSS_WEIGHTS: [1, 1] # [matching, recover]
-    
+                MAX_TRANSLATE_RANGE: [3.0, 3.0, 2.0]   
+
     BACKBONE_3D:
         NAME: IASSD_Backbone
         SA_CONFIG:
-            # Sampling setting:
             NPOINT_LIST: [[512], [512], [256], [128], [-1], [128]]
             SAMPLE_RANGE_LIST: [[-1], [-1], [-1], [-1], [-1], [-1]]
             SAMPLE_METHOD_LIST: &sample_method_list [['D-FPS'], ['D-FPS'], ['ctr_aware'], ['ctr_aware'], [], []]
@@ -70,23 +71,21 @@ MODEL:
             RADIUS_LIST: [[0.2,0.8], [0.8,1.6], [1.6,4.8], [], [], [4.8, 6.4]]
             NSAMPLE_LIST: [[16,32], [16,32], [16,32], [], [], [16, 32]]            
             MLPS: [[[16,16,32],  [32,32,64]],
-                   [[64,64,128],  [64,96,128]],
-                   [[128,128,256],  [128,256,256]],
-                   [],
-                   [128],
-                   [[256,256,512], [256,512,1024]]]
+                [[64,64,128],  [64,96,128]],
+                [[128,128,256],  [128,256,256]],
+                [],
+                [128],
+                [[256,256,512], [256,512,1024]]]
             
             LAYER_TYPE: ['SA_Layer', 'SA_Layer', 'SA_Layer', 'SA_Layer', 'Vote_Layer', 'SA_Layer']
             DILATED_GROUP: [False, False, False, False, False, False]            
             AGGREGATION_MLPS: [[64], [128], [256], [256], [], [512]]
             # Instance-aware setting:
             CONFIDENCE_MLPS: [[], [128], [256], [], [], []]
-
             LAYER_INPUT: [0, 1, 2, 3, 4, 3]
             CTR_INDEX: [-1, -1, -1, -1, -1, 5]
             MAX_TRANSLATE_RANGE: [3.0, 3.0, 2.0]
-            # SAVE_SAMPLE_LIST: True
-            # SAVE_SAMPLE_LIST: True
+
 
         FUSION_CONFIG:      
             NPOINT_LIST: [[256]]
@@ -105,10 +104,20 @@ MODEL:
             MAX_TRANSLATE_RANGE: [3.0, 3.0, 2.0]
 
 
+    USE_FEAT_AUG: True
+    FEAT_AUG:
+        CH_IN: 512
+        MLPS: [512, 512, 512, 512]
+        LOSS_WEIGHTS: [1] # matching only
+        RELU: True
+        BN: True
+
+    
+
     POINT_HEAD:
         NAME: IASSD_Head
-        CLS_FC: [256, 256]
-        REG_FC: [256, 256]
+        CLS_FC: [512,512]
+        REG_FC: [512,512]
         CLASS_AGNOSTIC: False
         USE_POINT_FEATURES_BEFORE_FUSION: False
         TARGET_CONFIG:
@@ -154,11 +163,11 @@ MODEL:
             }
 
     SHARED_HEAD:
-        NUM_POINT_FEATURES: 256
+        NUM_POINT_FEATURES: 512
         POINT_HEAD:
             NAME: IASSD_Head
-            CLS_FC: [256, 256]
-            REG_FC: [256, 256]
+            CLS_FC: [512, 512]
+            REG_FC: [512, 512]
             CLASS_AGNOSTIC: False
             USE_POINT_FEATURES_BEFORE_FUSION: False
             TARGET_CONFIG:
@@ -223,7 +232,7 @@ OPTIMIZATION:
     NUM_EPOCHS: 80
 
     OPTIMIZER: adam_onecycle
-    LR: 0.01
+    LR: 0.001
     WEIGHT_DECAY: 0.01
     MOMENTUM: 0.9
 
@@ -231,7 +240,7 @@ OPTIMIZATION:
     PCT_START: 0.4
     DIV_FACTOR: 10
     DECAY_STEP_LIST: [35, 45]
-    LR_DECAY: 0.1
+    LR_DECAY: 0.01
     LR_CLIP: 0.0000001
 
     LR_WARMUP: False

@@ -7,7 +7,6 @@ from .point_intra_part_head import PointIntraPartOffsetHead
 from .centerpoint_head_single import CenterHead
 from .IASSD_head import IASSD_Head
 from .point_head_box_3DSSD import PointHeadBox3DSSD
-from .RaDet_head import RaDet_Head
 
 __all__ = {
     'AnchorHeadTemplate': AnchorHeadTemplate,
@@ -19,5 +18,4 @@ __all__ = {
     'CenterHead': CenterHead,
     'IASSD_Head': IASSD_Head,
     'PointHeadBox3DSSD': PointHeadBox3DSSD,
-    'RaDetHead': RaDet_Head,
 }

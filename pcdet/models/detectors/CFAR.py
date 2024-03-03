@@ -6,14 +6,12 @@ from ...ops.pointnet2.pointnet2_batch import domain_fusion as df
 import os
 from ...ops.roiaware_pool3d import roiaware_pool3d_utils
 from ...utils import box_coder_utils, box_utils, loss_utils, common_utils
-import ipdb
-from ...vis_tools.vis_tools import *
 import numpy as np
 
 
 
-class IASSD_GAN(Detector3DTemplate):
-    #TODO self.transfer seems useless? 
+class CFAR(Detector3DTemplate):
+
     def __init__(self, model_cfg, num_class, dataset, tb_log=None):
         super().__init__(model_cfg=model_cfg, num_class=num_class, dataset=dataset)
         
@@ -41,19 +39,12 @@ class IASSD_GAN(Detector3DTemplate):
         self.shared_module_topology = ['point_head']
         shared_head = self.build_shared_head()
         self.shared_head = None if len(shared_head) == 0 else shared_head[0] 
-        
-        # ? Not sure if used
-        self.cross_over_cfg = self.model_cfg.CROSS_OVER 
+
         
         # Feature augmentation for feature detection
         self.use_feature_aug = model_cfg.get('USE_FEAT_AUG', False)
         
-        print('Done building IA-SSD-GAN')   
-        
-        # Visualization settings
-        self.vis_cnt = 0 
-        self.vis_interval = 100 # in unit batch
-        self.class_names = model_cfg.get('CLASS_NAMES', None)
+        print('Done building CFAR')   
         
 
 
@@ -179,31 +170,6 @@ class IASSD_GAN(Detector3DTemplate):
 
 # ===========================================================================
 
-    def print_shapes(self, batch_dict):
-        keys = batch_dict.keys()
-        print('='*80)
-        for k in batch_dict.keys():
-            if isinstance(batch_dict[k],int):
-                print(f'{k} (int): {batch_dict[k]}')
-            elif isinstance(batch_dict[k],dict):
-                dict2 = batch_dict[k]
-                print('-'*30+f'inner dict: {k}'+'-'*30)
-                for K in dict2.keys():
-                    if isinstance(dict2[K],int):
-                        print(f'{K}: {dict2[K]}')
-                    elif isinstance(dict2[K],list):
-                        print(f'{K} (len): {len(dict2[K])} , {[len(tensor) for tensor in dict2[K]]}')
-                    elif dict2[K] is None:
-                        print(f'{K}: IS NONE')
-                    else:
-                        print(f'{K}: {dict2[K].shape}')
-                print('-'*60)
-            elif isinstance(batch_dict[k],list):
-                print(f'{k} (len): {len(batch_dict[k])}, {[len(tensor) for tensor in batch_dict[k]]}')
-            elif batch_dict[k] is None:
-                print(f'{k}: is NONE')    
-            else:
-                print(f'{k}: {batch_dict[k].shape}')
             
     def get_transfer_feature(self, batch_dict):
         attach_dict = {
@@ -223,15 +189,10 @@ class IASSD_GAN(Detector3DTemplate):
         if self.use_feature_aug & self.training:
             if self.attach_model is not None:
                 transfer_dict = self.get_transfer_feature(batch_dict)
-                # self.print_shapes(batch_dict)
-                # print('TRANSFER DICT')
-                # self.print_shapes(transfer_dict)
                 batch_dict['att'] = transfer_dict
         for cur_module in self.module_list:
             
             batch_dict = cur_module(batch_dict)
-            # self.print_shapes(batch_dict)
-            # print('='*150)
         if self.training:
             loss, tb_dict, disp_dict = self.get_training_loss()
 
@@ -476,86 +437,3 @@ class FeatureAug(nn.Module):
         return matching_loss, tb_dict
 
 
-# ===================================VISUALIZATION====================================
-
-def draw_match(lidar, radar, mask, draw_match=True, \
-    bbox=None, c_names=None):
-    # draw the first batch
-    lidar_pts = lidar[0, :, :].detach().cpu().numpy().reshape([-1, 3])
-    radar_pts = radar[0, :, :].detach().cpu().numpy().reshape([-1, 3])
-    mask_match = mask[0, :, :].detach().cpu().numpy().reshape([-1])
-    match_idx = np.where(mask_match == 1)[0]
-    l_pts = lidar_pts[match_idx, :2]
-    r_pts = radar_pts[match_idx, :2]
-    fig, ax1, ax2 = draw_two_pointcloud(lidar_pts, radar_pts, 'lidar', 'radar')
-    if draw_match:
-        for i in range(mask_match.sum()):
-            xyA = l_pts[i, :]
-            xyB = r_pts[i, :]
-            draw_cross_line(xyA, xyB, fig, ax1, ax2)
-
-    if bbox is not None:
-        raw_bbox = bbox[0, :, :].cpu().numpy()
-        rec_list = boxes2rec(raw_bbox, c_names)
-        for rec in rec_list:
-            ax1.add_patch(rec)
-        rec_list = boxes2rec(raw_bbox, c_names)
-        for rec in rec_list:
-            ax2.add_patch(rec)
-    return fig
-
-def draw_match_in_one(lidar, radar, mask, tb_log, draw_match=True, \
-        bbox=None, c_names=None, title='match'):
-    # draw the first batch
-    lidar_pts = lidar[0, :, :].detach().cpu().numpy().reshape([-1, 3])
-    radar_pts = radar[0, :, :].detach().cpu().numpy().reshape([-1, 3])
-    mask_match = mask[0, :, :].detach().cpu().numpy().reshape([-1])
-    match_idx = np.where(mask_match == 1)[0]
-    l_pts = lidar_pts[match_idx, :2]
-    r_pts = radar_pts[match_idx, :2]
-    fig = plt.figure(dpi=150)
-    ax = fig.add_subplot()
-
-    ax.scatter(l_pts[:,0], l_pts[:,1], c='cyan', s=10)
-    ax.scatter(r_pts[:,0], r_pts[:,1], c='gold', s=10)
-    drawBEV(ax, lidar_pts, radar_pts, None, None, title)
-    if draw_match:
-        for i in range(mask_match.sum()):
-            xyA = l_pts[i, :]
-            xyB = r_pts[i, :]
-            # draw_cross_line(xyA, xyB, fig, ax, ax)
-            x_values = (xyA[0], xyB[0])
-            y_values = (xyA[1], xyB[1])
-            ax.plot(x_values, y_values, '-', color='orange')
-    if bbox is not None:
-        try:
-            raw_bbox = bbox[0, :, :].cpu().numpy()
-        except:
-            raw_bbox = bbox[0, :, :]
-        rec_list = boxes2rec(raw_bbox, c_names)
-        for rec in rec_list:
-            ax.add_patch(rec)
-    ax.set_xlim(-0, 75)
-    ax.set_ylim(-30, 30)
-    # if tb_log is not None:
-    tb_log.add_figure('one_fig_match_' + title, fig)
-    plt.close()
-    
-def draw_overlay(pcd1, pcd2, tb_log, title='two_pointcloud', bbox=None, c_names=None):
-    pts1 = pcd1[0,:,:].detach().cpu().numpy()
-    pts2 = pcd2[0,:,:].detach().cpu().numpy()
-    fig = plt.figure(dpi=150)
-    ax = fig.add_subplot()
-    drawBEV(ax, pts1, pts2, None, None, title, set_legend=False)
-    if bbox is not None:
-        try:
-            raw_bbox = bbox[0, :, :].cpu().numpy()
-        except:
-            raw_bbox = bbox[0, :, :]
-        rec_list = boxes2rec(raw_bbox, c_names)
-        for rec in rec_list:
-            ax.add_patch(rec)
-    ax.set_xlim(-0, 75)
-    ax.set_ylim(-30, 30)
-    tb_log.add_figure(title, fig)
-    plt.close()

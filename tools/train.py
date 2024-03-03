@@ -3,12 +3,9 @@ import datetime
 import glob
 from itertools import cycle
 import os
-# import os
-# os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 from pathlib import Path
 from re import S
 from test import repeat_eval_ckpt, eval_single_ckpt
-# from eval_utils import eval_utils
 import torch
 import torch.distributed as dist
 import torch.nn as nn
@@ -46,7 +43,6 @@ def parse_config():
     parser.add_argument('--start_epoch', type=int, default=0, help='')
     parser.add_argument('--save_to_file', default=False, help='')
     parser.add_argument('--freeze_part', type=bool, default=False, help='load head params only and freeze them during training')
-    # parser.add_argument('--modality', default='lidar', help='specify data modality, default is lidar.')
     parser.add_argument('--eval_epoch', type=int, default=1, help='number of epoch for eval once')
     parser.add_argument('--eval_save', type=bool, default=True, help='save best eval model during training')
     parser.add_argument('--multi_gpu', type=bool, default=False, help='whether to use multiple gpu for training')

@@ -9,10 +9,10 @@ from .centerpoint_rcnn import CenterPointRCNN
 from .IASSD import IASSD
 from .detectorX_template import DetectorX_template
 from .IASSD_X import IASSD_X
-from .IASSD_GAN import IASSD_GAN
-# from .IASSD_GAN_tidying import IASSD_GAN_clean
+# from .IASSD_GAN import IASSD_GAN
+from .CFAR import CFAR
 from .point_3DSSD import Point3DSSD
-from .RaDet import RaDet
+
 
 __all__ = {
     'Detector3DTemplate': Detector3DTemplate,
@@ -25,11 +25,8 @@ __all__ = {
     'CenterPoint': CenterPoint,
     'CenterPointRCNN': CenterPointRCNN,
     'IASSD': IASSD,
-    # 'IASSDX': IASSD_X,
-    'IASSDGAN': IASSD_GAN,
-    # 'IASSDGAN_clean': IASSD_GAN_clean,
+    'CFAR': CFAR,
     '3DSSD': Point3DSSD,
-    'RaDet': RaDet
 }
 
 
