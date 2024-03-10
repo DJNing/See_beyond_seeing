@@ -28,7 +28,6 @@ RUN PIP_INSTALL="python -m pip --no-cache-dir install" && \
 
 WORKDIR /root
 
-# RUN cd / && git clone https://github.com/MAPS-Lab/CenterPoint-KITTI.git
 RUN pip install tensorboardX
 RUN pip install --ignore-installed PyYAML
 RUN pip install open3d
