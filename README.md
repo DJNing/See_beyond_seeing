@@ -6,7 +6,7 @@
 </div>
 
 [![arXiv](https://img.shields.io/badge/arXiv-2309.17336-b31b1b.svg)](https://arxiv.org/abs/2309.17336)
-[![ ](https://img.shields.io/youtube/views/PjKgznDizhI?label=Demo&style=flat)](https://youtu.be/378lnj2ku60?si=4UNGlzKXXznaPSXB) 
+[![ ](https://img.shields.io/youtube/views/378lnj2ku60?label=Demo&style=flat)](https://youtu.be/378lnj2ku60?si=4UNGlzKXXznaPSXB) 
 
 This is the official repository of **Cross-Modal Feature Augmentation**, a cross-modal framework for 3D object detection. For technical details please refer to our paper on ICRA 2024:
 
