@@ -1,7 +1,7 @@
 
 <div align = "center">
 
-# See Beyond Seeing: Robust 3D Object Detection from Point Clouds via Cross-Modal Hallucination
+# Robust 3D Object Detection from LiDAR-Radar Point Clouds Via Cross-Modal Feature Augmentation
 
 </div>
 
@@ -11,7 +11,7 @@
 This is the official repository of **Cross-Modal Feature Augmentation**, a cross-modal framework for 3D object detection. For technical details please refer to our paper on ICRA 2024:
 
 
-**See_beyond_seeing: Robust 3D Object Detection from Point Clouds via Cross-Modal Hallucination**
+**Robust 3D Object Detection from LiDAR-Radar Point Clouds Via Cross-Modal Feature Augmentation**
 <br>
 [Jianning Deng](https://github.com/DJNing), [Gabriel Chan](https://github.com/gc625), [Hantao Zhong](https://github.com/MrTooOldDriver), [Chris Xiaoxuan Lu](https://christopherlu.github.io/)
 </br>
