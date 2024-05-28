@@ -13,6 +13,7 @@ RUN rm /etc/apt/sources.list.d/nvidia-ml.list
 RUN apt clean
 RUN apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/3bf863cc.pub
 RUN chmod 777 /tmp
+
 # Install basics
 RUN apt-get update -y \
     && apt-get install build-essential \

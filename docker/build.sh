@@ -1,0 +1,1 @@
+docker build . -t docker.io/gc625kodifly/seeing_beyond:latest
