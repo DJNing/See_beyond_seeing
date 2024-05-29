@@ -53,6 +53,52 @@ next, please extract the dataset to desired location. The directory structure sh
 
 # Running Docker 
 
+Next, please run 
+
+```
+./docker/run.sh <repository-path> <data-path>
+
+# e.g.
+# ./docker/run.sh /home/user/See_beyond_seeing /home/user/data
+# where /home/user/data contains view_of_delft_PUBLIC folder
+```
+
+# Preprocessing Dataset
+once you are inside the container, please run:
+
+```
+cd /seeing_beyond
+python3 /seeing_beyond/tools/prepare_vod_dataset.py
+
+python3 setup.py develop 
+
+cd /seeing_beyond/pcdet/ops/pointnet2/pointnet2_3DSSD
+python3 setup.py develop
+
+python3 -m pcdet.datasets.kitti.kitti_dataset create_kitti_infos /seeing_beyond/tools/cfgs/dataset_configs/vod_lidar_dataset.yaml
+python3 -m pcdet.datasets.kitti.kitti_dataset create_kitti_infos /seeing_beyond/tools/cfgs/dataset_configs/vod_radar_dataset.yaml
+```
+
+
+# Evaluation
+
+we provide pretrained models at under `./ckpts`. To run eval on the checkpoints, please run the following scripts inside the container:
+```
+# LiDAR main modality, radar aux
+./seeing_beyond/tools/eval_cfar_lidar.sh
+# Radar main modality, LiDAR aux
+/seeing_beyond/tools/eval_cfar_radar.sh
+``` 
+
+# Training
+
+Training scripts are also provided, please run:
+```
+# LiDAR main modality, radar aux
+./seeing_beyond/tools/trian_cfar_lidar.sh
+# Radar main modality, LiDAR aux
+/seeing_beyond/tools/trian_cfar_radar.sh
+```
 
 
 

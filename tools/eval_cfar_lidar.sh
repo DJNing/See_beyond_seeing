@@ -1,5 +1,4 @@
-python tools/eval_single_epoch.py \
---cfg_file /CenterPoint-KITTI/tools/cfgs/kitti_models/IA-SSD-GAN-aug-lidar.yaml \
---ckpt /CenterPoint-KITTI/ckpts/cfar-lidar.pt \
---pretrained_model /CenterPoint-KITTI/ckpts/cfar-lidar.pt \
---extra_tag cfar-debug
+python3 tools/eval_single_epoch.py \
+--cfg_file /seeing_beyond/tools/cfgs/kitti_models/cfar-lidar.yaml \
+--ckpt /seeing_beyond/ckpts/cfar-lidar.pt \
+--pretrained_model /seeing_beyond/ckpts/cfar/cfar-lidar-rcs.pth \

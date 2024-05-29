@@ -1,9 +1,10 @@
 CLASS_NAMES: ['Car','Pedestrian', 'Cyclist']
 
 DATA_CONFIG:
-    _BASE_CONFIG_: /seeing_beyond/tools/cfgs/dataset_configs/vod_radar_dataset.yaml
+    _BASE_CONFIG_: tools/cfgs/dataset_configs/vod_lidar_dataset.yaml
+    # TODO: handle data_processor base on different modality
     
-    ATTACH_USED_FEATURE_LIST: ['x', 'y', 'z','intensity']
+    ATTACH_USED_FEATURE_LIST: ['x', 'y', 'z','RCS']
     
     DATA_PROCESSOR:
         -   NAME: mask_points_and_boxes_outside_range
@@ -11,13 +12,13 @@ DATA_CONFIG:
 
         -   NAME: sample_points
             NUM_POINTS: {
-                'train': 512,
-                'test': 512
+                'train': 80000,
+                'test': 80000
             }
         -   NAME: sample_attach_points
             NUM_POINTS: {
-                'train': 80000,
-                'test': 80000
+                'train': 512,
+                'test': 512
             }
         -   NAME: shuffle_points
             SHUFFLE_ENABLED: {
@@ -26,22 +27,20 @@ DATA_CONFIG:
             }
 
 USE_ATTACH: True
+
 MODEL:
     DEBUG: False
     NAME: CFAR
     ATTACH_NETWORK:
-        CKPT_FILE: "/seeing_beyond/ckpts/iassd/iassd-lidar.pth"
+        CKPT_FILE: "/CenterPoint-KITTI/ckpts/iassd-radar-rcs-only.pth"
         NUM_POINT_FEATURES: 4
         BACKBONE_3D:
             NAME: IASSD_Backbone
-            # ========= for evaluation only ==========
-            # SAVE_FEAT_DIR: '/mnt/sda1/hantao/CenterPoint-KITTI/output/IA-SSD-GAN-vod-aug/debug/eval/inter_feats/attach'
-            # ========================================
             SA_CONFIG:
-                Sampling setting:
-                NPOINT_LIST: [[4096], [1024], [512], [256], [-1], [256]]
+                NPOINT_LIST: [[512], [512], [256], [128], [-1], [128]]
                 SAMPLE_RANGE_LIST: [[-1], [-1], [-1], [-1], [-1], [-1]]
-                SAMPLE_METHOD_LIST: [['D-FPS'], ['D-FPS'], ['ctr_aware'], ['ctr_aware'], [], []]
+                SAMPLE_METHOD_LIST: &sample_method_list [['D-FPS'], ['D-FPS'], ['ctr_aware'], ['ctr_aware'], [], []]
+                # Group and Abstraction setting:
                 RADIUS_LIST: [[0.2,0.8], [0.8,1.6], [1.6,4.8], [], [], [4.8, 6.4]]
                 NSAMPLE_LIST: [[16,32], [16,32], [16,32], [], [], [16, 32]]            
                 MLPS: [[[16,16,32],  [32,32,64]],
@@ -56,18 +55,20 @@ MODEL:
                 AGGREGATION_MLPS: [[64], [128], [256], [256], [], [512]]
                 # Instance-aware setting:
                 CONFIDENCE_MLPS: [[], [128], [256], [], [], []]
-                EUCLIDEAN_MASK: [False, False, False, False, False, False]       
                 LAYER_INPUT: [0, 1, 2, 3, 4, 3]
                 CTR_INDEX: [-1, -1, -1, -1, -1, 5]
-                MAX_TRANSLATE_RANGE: [3.0, 3.0, 2.0]   
-
+                MAX_TRANSLATE_RANGE: [3.0, 3.0, 2.0]
+    
     BACKBONE_3D:
         NAME: IASSD_Backbone
+        # ========= for evaluation only ==========
+        # SAVE_FEAT_DIR: '/mnt/sda1/hantao/CenterPoint-KITTI/output/IA-SSD-GAN-vod-aug/debug/eval/inter_feats/main_branch'
+        # ========================================
         SA_CONFIG:
-            NPOINT_LIST: [[512], [512], [256], [128], [-1], [128]]
+            Sampling setting:
+            NPOINT_LIST: [[4096], [1024], [512], [256], [-1], [256]]
             SAMPLE_RANGE_LIST: [[-1], [-1], [-1], [-1], [-1], [-1]]
-            SAMPLE_METHOD_LIST: &sample_method_list [['D-FPS'], ['D-FPS'], ['ctr_aware'], ['ctr_aware'], [], []]
-            # Group and Abstraction setting:
+            SAMPLE_METHOD_LIST: [['D-FPS'], ['D-FPS'], ['ctr_aware'], ['ctr_aware'], [], []]
             RADIUS_LIST: [[0.2,0.8], [0.8,1.6], [1.6,4.8], [], [], [4.8, 6.4]]
             NSAMPLE_LIST: [[16,32], [16,32], [16,32], [], [], [16, 32]]            
             MLPS: [[[16,16,32],  [32,32,64]],
@@ -82,9 +83,10 @@ MODEL:
             AGGREGATION_MLPS: [[64], [128], [256], [256], [], [512]]
             # Instance-aware setting:
             CONFIDENCE_MLPS: [[], [128], [256], [], [], []]
+            EUCLIDEAN_MASK: [False, False, False, False, False, False]       
             LAYER_INPUT: [0, 1, 2, 3, 4, 3]
             CTR_INDEX: [-1, -1, -1, -1, -1, 5]
-            MAX_TRANSLATE_RANGE: [3.0, 3.0, 2.0]
+            MAX_TRANSLATE_RANGE: [3.0, 3.0, 2.0]            
 
 
         FUSION_CONFIG:      
@@ -107,7 +109,7 @@ MODEL:
     USE_FEAT_AUG: True
     FEAT_AUG:
         CH_IN: 512
-        MLPS: [512, 512, 512, 512]
+        MLPS: [448, 384, 320, 256]
         LOSS_WEIGHTS: [1] # matching only
         RELU: True
         BN: True
@@ -116,8 +118,8 @@ MODEL:
 
     POINT_HEAD:
         NAME: IASSD_Head
-        CLS_FC: [512,512]
-        REG_FC: [512,512]
+        CLS_FC: [256, 256]
+        REG_FC: [256, 256]
         CLASS_AGNOSTIC: False
         USE_POINT_FEATURES_BEFORE_FUSION: False
         TARGET_CONFIG:
@@ -163,11 +165,11 @@ MODEL:
             }
 
     SHARED_HEAD:
-        NUM_POINT_FEATURES: 512
+        NUM_POINT_FEATURES: 256
         POINT_HEAD:
             NAME: IASSD_Head
-            CLS_FC: [512, 512]
-            REG_FC: [512, 512]
+            CLS_FC: [256, 256]
+            REG_FC: [256, 256]
             CLASS_AGNOSTIC: False
             USE_POINT_FEATURES_BEFORE_FUSION: False
             TARGET_CONFIG:

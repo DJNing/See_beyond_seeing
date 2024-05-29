@@ -553,13 +553,10 @@ if __name__ == '__main__':
         from pathlib import Path
         from easydict import EasyDict
 
-        isRadar = 'radar' in sys.argv[2]
-
+        
         print('====> print %s' % sys.argv[2])
         dataset_cfg = EasyDict(yaml.safe_load(open(sys.argv[2])))
         ROOT_DIR = Path(dataset_cfg['DATA_PATH'])
-        # ROOT_DIR = (Path(__file__).resolve().parent / '../../../').resolve()
-        # print(ROOT_DIR)
         create_kitti_infos(
             dataset_cfg=dataset_cfg,
             class_names=['Car', 'Pedestrian', 'Cyclist'],

@@ -30,7 +30,7 @@ MODEL:
     DEBUG: False
     NAME: CFAR
     ATTACH_NETWORK:
-        CKPT_FILE: "/seeing_beyond/ckpts/iassd/iassd-lidar.pth"
+        CKPT_FILE: "/CenterPoint-KITTI/ckpts/iassd/iassd-lidar-all-cls.pth"
         NUM_POINT_FEATURES: 4
         BACKBONE_3D:
             NAME: IASSD_Backbone
